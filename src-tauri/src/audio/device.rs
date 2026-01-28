@@ -28,7 +28,7 @@ impl DeviceManager {
         let mut devices = Vec::new();
 
         for device in self.host.input_devices()? {
-            let name = device.description()?;
+            let name = device.description()?.to_string();
             let config = device.default_input_config()?;
 
             devices.push(DeviceInfo {
@@ -43,7 +43,7 @@ impl DeviceManager {
         }
 
         for device in self.host.output_devices()? {
-            let name = device.description()?;
+            let name = device.description()?.to_string();
             let config = device.default_output_config()?;
 
             devices.push(DeviceInfo {

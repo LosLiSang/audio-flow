@@ -29,10 +29,8 @@ pub struct AudioEngine {
     running: Arc<AtomicBool>,
     mixer: Arc<parking_lot::Mutex<AudioMixer>>,
 
-    // 缓冲池
     buffer_pool: Arc<SegQueue<Vec<f32>>>,
 
-    // 音频数据队列
     input_queues: HashMap<String, Arc<SegQueue<Vec<f32>>>>,
 }
 
@@ -240,8 +238,9 @@ impl AudioEngine {
         host: &cpal::Host,
         device_id: &str,
     ) -> Result<cpal::Device, AudioError> {
-        for device in host.input_devices()? {
-            let generated_id = format!("{}_input", device.description()?);
+        for device in host.input_devices().map_err(AudioError::Device)? {
+            let name = device.description().map_err(AudioError::Device)?;
+            let generated_id = format!("{}_input", name);
             if generated_id == device_id {
                 return Ok(device);
             }
@@ -254,8 +253,9 @@ impl AudioEngine {
         host: &cpal::Host,
         device_id: &str,
     ) -> Result<cpal::Device, AudioError> {
-        for device in host.output_devices()? {
-            let generated_id = format!("{}_output", device.description()?);
+        for device in host.output_devices().map_err(AudioError::Device)? {
+            let name = device.description().map_err(AudioError::Device)?;
+            let generated_id = format!("{}_output", name);
             if generated_id == device_id {
                 return Ok(device);
             }
@@ -264,6 +264,7 @@ impl AudioEngine {
     }
 
     pub fn add_route(&mut self, route: Route) -> Result<(), AudioError> {
+        self.routes.push(route);
         tracing::info!(
             "Added route: {} -> {}",
             route.input_device_id,
@@ -292,7 +293,7 @@ impl AudioEngine {
         Ok(())
     }
 
-    pub fn get_peak_levels(&self) -> HashMap<String, f32> {
+    pub fn get_peak_levels(&self) -> std::collections::HashMap<String, f32> {
         self.peak_levels
             .iter()
             .map(|(id, level)| (id.clone(), level.load(Ordering::SeqCst) as f32 / 1000.0))
