@@ -1,8 +1,8 @@
 mod device;
-mod engine;
-mod error;
-mod mixer;
+pub mod engine;
+pub mod error;
+pub mod mixer;
 
-pub use device::{DeviceManager, DeviceInfo};
+pub use device::{DeviceInfo, DeviceManager};
 pub use engine::{AudioEngine, Route};
 pub use error::AudioError;

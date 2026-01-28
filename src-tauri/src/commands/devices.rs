@@ -5,7 +5,7 @@ use std::collections::HashMap;
 #[tauri::command]
 pub async fn list_devices(state: State<'_, crate::AppState>) -> Result<Vec<DeviceInfo>, String> {
     let engine = state.engine.lock();
-    let devices = engine.device_manager.list_devices().map_err(|e| e.to_string())?;
+    let devices = engine.device_manager.list_devices().map_err::<String, _>(|e| e.to_string())?;
     Ok(devices)
 }
 

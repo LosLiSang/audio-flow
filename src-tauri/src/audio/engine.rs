@@ -241,8 +241,7 @@ impl AudioEngine {
         device_id: &str,
     ) -> Result<cpal::Device, AudioError> {
         for device in host.input_devices()? {
-            let name = device.name()?;
-            let generated_id = format!("{}_input", name);
+            let generated_id = format!("{}_input", device.description()?);
             if generated_id == device_id {
                 return Ok(device);
             }
@@ -256,8 +255,7 @@ impl AudioEngine {
         device_id: &str,
     ) -> Result<cpal::Device, AudioError> {
         for device in host.output_devices()? {
-            let name = device.name()?;
-            let generated_id = format!("{}_output", name);
+            let generated_id = format!("{}_output", device.description()?);
             if generated_id == device_id {
                 return Ok(device);
             }
@@ -266,7 +264,6 @@ impl AudioEngine {
     }
 
     pub fn add_route(&mut self, route: Route) -> Result<(), AudioError> {
-        self.routes.push(route);
         tracing::info!(
             "Added route: {} -> {}",
             route.input_device_id,
