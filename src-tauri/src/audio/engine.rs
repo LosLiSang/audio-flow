@@ -233,14 +233,31 @@ impl AudioEngine {
         Ok(())
     }
 
+    fn normalize_device_name(&self, name: &str) -> String {
+        // 与device.rs中的normalize_device_name保持一致
+        // 移除" via "后缀
+        if let Some(pos) = name.find(" via ") {
+            name[..pos].trim().to_string()
+        } else {
+            name.trim().to_string()
+        }
+    }
+
     fn find_input_device_by_id(
         &self,
         host: &cpal::Host,
         device_id: &str,
     ) -> Result<cpal::Device, AudioError> {
-        for device in host.input_devices().map_err(AudioError::Device)? {
-            let name = device.description().map_err(AudioError::Device)?;
-            let generated_id = format!("{}_input", name);
+        for device in host
+            .input_devices()
+            .map_err(|e| AudioError::Device(e.to_string()))?
+        {
+            let name = device
+                .description()
+                .map_err(|e| AudioError::Device(e.to_string()))?
+                .to_string();
+            let normalized_name = self.normalize_device_name(&name);
+            let generated_id = format!("{}_input", normalized_name);
             if generated_id == device_id {
                 return Ok(device);
             }
@@ -253,9 +270,16 @@ impl AudioEngine {
         host: &cpal::Host,
         device_id: &str,
     ) -> Result<cpal::Device, AudioError> {
-        for device in host.output_devices().map_err(AudioError::Device)? {
-            let name = device.description().map_err(AudioError::Device)?;
-            let generated_id = format!("{}_output", name);
+        for device in host
+            .output_devices()
+            .map_err(|e| AudioError::Device(e.to_string()))?
+        {
+            let name = device
+                .description()
+                .map_err(|e| AudioError::Device(e.to_string()))?
+                .to_string();
+            let normalized_name = self.normalize_device_name(&name);
+            let generated_id = format!("{}_output", normalized_name);
             if generated_id == device_id {
                 return Ok(device);
             }
@@ -264,7 +288,7 @@ impl AudioEngine {
     }
 
     pub fn add_route(&mut self, route: Route) -> Result<(), AudioError> {
-        self.routes.push(route);
+        self.routes.push(route.clone());
         tracing::info!(
             "Added route: {} -> {}",
             route.input_device_id,
@@ -298,6 +322,10 @@ impl AudioEngine {
             .iter()
             .map(|(id, level)| (id.clone(), level.load(Ordering::SeqCst) as f32 / 1000.0))
             .collect()
+    }
+
+    pub fn get_routes(&self) -> Vec<Route> {
+        self.routes.clone()
     }
 
     pub fn is_running(&self) -> bool {

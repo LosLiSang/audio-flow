@@ -42,6 +42,7 @@ export default function App() {
 
   useEffect(() => {
     loadDevices()
+    loadRoutes()
     const interval = setInterval(updatePeakLevels, 100)
     return () => clearInterval(interval)
   }, [])
@@ -49,9 +50,20 @@ export default function App() {
   const loadDevices = async () => {
     try {
       const deviceList = await invoke<DeviceInfo[]>('list_devices')
+      console.log('Loaded devices:', deviceList)
       setDevices(deviceList)
     } catch (error) {
       console.error('Failed to load devices:', error)
+    }
+  }
+
+  const loadRoutes = async () => {
+    try {
+      const routeList = await invoke<Route[]>('get_routes')
+      console.log('Loaded routes:', routeList)
+      setRoutes(routeList)
+    } catch (error) {
+      console.error('Failed to load routes:', error)
     }
   }
 
@@ -98,6 +110,7 @@ export default function App() {
           devices={devices}
           routes={routes}
           onRoutesChange={setRoutes}
+          onRoutesReload={loadRoutes}
         />
         
         <VUMeter 

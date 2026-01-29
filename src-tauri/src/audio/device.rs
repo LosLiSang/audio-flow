@@ -61,7 +61,23 @@ impl DeviceManager {
     }
 
     fn generate_device_id(&self, name: &str, is_input: bool) -> String {
-        format!("{}_{}", name, if is_input { "input" } else { "output" })
+        let normalized_name = self.normalize_device_name(name);
+        format!(
+            "{}_{}",
+            normalized_name,
+            if is_input { "input" } else { "output" }
+        )
+    }
+
+    fn normalize_device_name(&self, name: &str) -> String {
+        // 在Windows上，WASAPI设备描述可能包含" via "后缀
+        // 例如："CABLE Output via Line Input"
+        // 我们只保留" via "之前的部分作为规范名称
+        if let Some(pos) = name.find(" via ") {
+            name[..pos].trim().to_string()
+        } else {
+            name.trim().to_string()
+        }
     }
 
     fn is_vb_cable(&self, name: &str) -> bool {

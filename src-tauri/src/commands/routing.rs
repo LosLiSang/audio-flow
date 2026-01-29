@@ -30,3 +30,9 @@ pub async fn stop_engine(state: State<'_, crate::AppState>) -> Result<(), String
     let mut engine = state.engine.lock().map_err(|e| e.to_string())?;
     engine.stop().map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+pub async fn get_routes(state: State<'_, crate::AppState>) -> Result<Vec<Route>, String> {
+    let engine = state.engine.lock().map_err(|e| e.to_string())?;
+    Ok(engine.get_routes())
+}

@@ -3,27 +3,30 @@ use cpal::DefaultStreamConfigError;
 use cpal::DeviceNameError;
 use cpal::DevicesError;
 use cpal::PlayStreamError;
-use std::io::Error;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AudioError {
-    #[error("CPAL error: {0}")]
-    Cpal(#[from] DevicesError),
+    #[error("CPAL devices error: {0}")]
+    CpalDevices(#[from] DevicesError),
 
-    #[error("CPAL error: {0}")]
-    Cpal(#[from] DefaultStreamConfigError),
+    #[error("CPAL stream config error: {0}")]
+    CpalConfig(#[from] DefaultStreamConfigError),
 
-    #[error("CPAL error: {0}")]
-    Cpal(#[from] BuildStreamError),
+    #[error("CPAL stream build error: {0}")]
+    CpalStream(#[from] BuildStreamError),
 
-    #[error("CPAL error: {0}")]
-    Cpal(#[from] PlayStreamError),
+    #[error("CPAL stream play error: {0}")]
+    CpalPlay(#[from] PlayStreamError),
 
-    #[error("CPAL error: {0}")]
-    Cpal(#[from] DeviceNameError),
+    #[error("CPAL device name error: {0}")]
+    CpalDeviceName(#[from] DeviceNameError),
 
-    #[error("CPAL error: {0}")]
-    Cpal(#[from] DefaultStreamConfigError),
+    #[error("CPAL device error: {0}")]
+    Device(String),
+
+    #[error("Device not found: {0}")]
+    DeviceNotFound(String),
 
     #[error("No device found")]
     NoDevice,
@@ -32,44 +35,8 @@ pub enum AudioError {
     NoVBCableDevice,
 
     #[error("IO error: {0}")]
-    Io(#[from] Error),
+    Io(#[from] std::io::Error),
 
     #[error("Configuration error: {0}")]
     Config(String),
-}
-
-impl From<BuildStreamError> for AudioError {
-    fn from(err: BuildStreamError) -> Self {
-        AudioError::Cpal(err.to_string())
-    }
-}
-
-impl From<DefaultStreamConfigError> for AudioError {
-    fn from(err: DefaultStreamConfigError) -> Self {
-        AudioError::Cpal(err.to_string())
-    }
-}
-
-impl From<DeviceNameError> for AudioError {
-    fn from(err: DeviceNameError) -> Self {
-        AudioError::Cpal(err.to_string())
-    }
-}
-
-impl From<DevicesError> for AudioError {
-    fn from(err: DevicesError) -> Self {
-        AudioError::Cpal(err.to_string())
-    }
-}
-
-impl From<PlayStreamError> for AudioError {
-    fn from(err: PlayStreamError) -> Self {
-        AudioError::Cpal(err.to_string())
-    }
-}
-
-impl From<std::io::Error> for AudioError {
-    fn from(err: Error) -> Self {
-        AudioError::Io(err.to_string())
-    }
 }
